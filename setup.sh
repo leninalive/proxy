@@ -3,7 +3,7 @@ apt-get update
 apt-get -y install tinyproxy
 mv /etc/tinyproxy.conf /etc/tinyproxy.conf.orig
 echo 'User nobody' > /etc/tinyproxy.conf
-echo 'Group nobody' >> /etc/tinyproxy.conf
+echo 'Group nogroup' >> /etc/tinyproxy.conf
 echo 'Port 36218' >> /etc/tinyproxy.conf
 echo 'BindSame yes' >> /etc/tinyproxy.conf
 echo 'Timeout 600' >> /etc/tinyproxy.conf
