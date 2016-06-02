@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 apt-get update
 apt-get -y install tinyproxy
 mv /etc/tinyproxy.conf /etc/tinyproxy.conf.orig
