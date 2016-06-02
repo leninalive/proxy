@@ -1,0 +1,209 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "gate_id": {
+            "defaultValue": "1",
+            "type": "String"
+        },
+    },
+    "variables": {},
+    "resources": [
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/Gates/providers/Microsoft.Compute/virtualMachines/gate\".",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat('Gate', parameters('gate_id'))]",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Basic_A0"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "credativ",
+                        "offer": "Debian",
+                        "sku": "8",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat('gate', parameters('gate_id'))]",
+                        "createOption": "FromImage",
+                        "vhd": {
+                            "uri": "[concat('https', '://gate', parameters('gate_id'), '.blob.core.windows.net', concat('/vhds/gate', parameters('gate_id'),'.vhd'))]"
+                        },
+                        "caching": "ReadWrite"
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[concat('Gate', parameters('gate_id'))]",
+                    "adminUsername": "['gate']",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "[concat('/home/', parameters('virtualMachines_gate_name'),'/.ssh/authorized_keys')]",
+                                    "keyData": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDSzCRDo8/6vm7cMOlmoz/nAGp6fBHTO8mMqd7cyzoyVlmC41WpHmCA+flTNC3JD4k+YyeT0ql5vFM9QulMWUldX36B3LxmYJZ23gPJz1MNBt6lKFAPzris5UUF5j++z8l2Njlht5PDPaDI7AlqPoC7UZXGIC572qtMZxFHAV0GcVeYthrxPXS+fbaek0WohWJaiOlLUR9f+QM/Ho5wuWVo/8pL4ilD/bAkkBn6rqjyZuaSdwX389AKU4XL9G5ERg3fZWM373YvwFoOZSUBw1qPViveGrjvFdB80VB8KK2p5kA14ReEPDG+hECKMtVJz3Tay4hjX7ZtCZ0ZEdrNVJX5"
+                                }
+                            ]
+                        }
+                    },
+                    "secrets": [],
+                    "adminPassword": ""
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('gate', parameters('gate_id')))]"
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', concat('gate', parameters('gate_id')))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('gate', parameters('gate_id')))]"
+            ]
+        },
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/Gates/providers/Microsoft.Network/networkInterfaces/gate442\".",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat('gate', parameters('gate_id'))]",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "10.0.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat('Gate', parameters('gate_id')))]"
+                            },
+                            "subnet": {
+                                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'Gates'), '/subnets/Gates')]"
+                            }
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'Gates')]"
+                }
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', concat('Gate', parameters('gate_id')))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', 'Gates')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', 'Gates')]"
+            ]
+        },
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/Gates/providers/Microsoft.Network/networkSecurityGroups/Gates\".",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "Gates",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow-proxy",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "36218",
+                            "sourceAddressPrefix": "178.125.184.0/24",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1010,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "default-allow-ssh",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/Gates/providers/Microsoft.Network/publicIPAddresses/Gate0\".",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat('Gate', parameters('gate_id'))]",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "idleTimeoutInMinutes": 4
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/Gates/providers/Microsoft.Network/virtualNetworks/Gates\".",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "Gates",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "Gates",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24"
+                        }
+                    }
+                ]
+            },
+            "dependsOn": []
+        },
+        {
+            "comments": "Обобщено из ресурса: \"/subscriptions/12504c59-eb7b-4fbd-bae8-967bd5e69171/resourceGroups/gates/providers/Microsoft.Storage/storageAccounts/gates1368\".",
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "gates1368_name",
+            "apiVersion": "2015-06-15",
+            "location": "northeurope",
+            "tags": {},
+            "properties": {
+                "accountType": "Standard_GRS"
+            },
+            "dependsOn": []
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('Gate',parameters('gate_id'),'/installcustomscript')]",
+            "apiVersion": "[variables('apiVersion')]",
+            "location": "northeurope",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/Gate', variables('gate_id'))]"
+            ],
+            "properties": {
+                "publisher": "Microsoft.OSTCExtensions",
+                "type": "CustomScriptForLinux",
+                "typeHandlerVersion": "1.3",
+                "settings": {
+                    "fileUris": "",
+                    "commandToExecute": "/bin/sh -c 'wget -O /tmp/install.sh https://raw.githubusercontent.com/leninalive/proxy/master/install.sh; chmod 755 /tmp/install.sh; /tmp/install.sh; rm -f /tmp/install.sh'"
+                }
+            }
+        }
+    ]
+}
